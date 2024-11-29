@@ -36,6 +36,9 @@ int obterNumeroRegistrador(char *reg);
 unsigned int obterOpcode(char *mnemonic);
 unsigned int obterFunct(char *mnemonic);
 
+// Função para obter o nome do registrador a partir do número
+void obterNomeRegistrador(int numero, char *nome);
+
 int main() {
     char instrucaoStr[50];
     char mnemonic[10];
@@ -49,7 +52,7 @@ int main() {
 
         // Opção de saída
         if (strcmp(instrucaoStr, "sair") == 0) {
-            printf("\nprograma encerrado\n");
+            printf("\nPrograma encerrado\n");
             break;
         }
 
@@ -124,64 +127,99 @@ void exibirInstrucao(char *mnemonic, char operandos[][10]) {
 void executarInstrucao(char *mnemonic, char operandos[][10], int *registradores) {
     unsigned int opcode = obterOpcode(mnemonic);
 
+    // Variáveis para armazenar os nomes dos registradores
+    char nome_rd[10], nome_rs[10], nome_rt[10];
+
     if (opcode == 0) { // Tipo R
         unsigned int rs = obterNumeroRegistrador(operandos[1]);
         unsigned int rt = obterNumeroRegistrador(operandos[2]);
         unsigned int rd = obterNumeroRegistrador(operandos[0]);
         unsigned int funct = obterFunct(mnemonic);
 
+        obterNomeRegistrador(rd, nome_rd);
+        obterNomeRegistrador(rs, nome_rs);
+        obterNomeRegistrador(rt, nome_rt);
+
         if (funct == 32) { // add
             registradores[rd] = registradores[rs] + registradores[rt];
+            printf("[%s] = [%s] + [%s]\n", nome_rd, nome_rs, nome_rt);
         } else if (funct == 34) { // sub
             registradores[rd] = registradores[rs] - registradores[rt];
+            printf("[%s] = [%s] - [%s]\n", nome_rd, nome_rs, nome_rt);
         } else if (funct == 36) { // and
             registradores[rd] = registradores[rs] & registradores[rt];
+            printf("[%s] = [%s] & [%s]\n", nome_rd, nome_rs, nome_rt);
         } else if (funct == 37) { // or
             registradores[rd] = registradores[rs] | registradores[rt];
+            printf("[%s] = [%s] | [%s]\n", nome_rd, nome_rs, nome_rt);
         } else if (funct == 42) { // slt
             registradores[rd] = (registradores[rs] < registradores[rt]) ? 1 : 0;
+            printf("[%s] = [%s] < [%s]\n", nome_rd, nome_rs, nome_rt);
         } else {
             printf("Instrucao nao suportada.\n");
         }
     } else if (opcode == 35) { // lw
-        unsigned int base = obterNumeroRegistrador(operandos[1]);
+        unsigned int base = obterNumeroRegistrador(operandos[2]);
         unsigned int rt = obterNumeroRegistrador(operandos[0]);
-        int offset = atoi(operandos[2]);
+        int offset = atoi(operandos[1]);
+
+        obterNomeRegistrador(rt, nome_rt);
+        obterNomeRegistrador(base, nome_rs); // Usando nome_rs para o base
+
         // Simulação simplificada: vamos supor que a memória é um array de inteiros
-        int memoria[1024] = {0};
+        static int memoria[1024] = {0};
         registradores[rt] = memoria[registradores[base] + offset];
+        printf("[%s] = MEM[%d]\n", nome_rt, registradores[base] + offset);
     } else if (opcode == 43) { // sw
-        unsigned int base = obterNumeroRegistrador(operandos[1]);
+        unsigned int base = obterNumeroRegistrador(operandos[2]);
         unsigned int rt = obterNumeroRegistrador(operandos[0]);
-        int offset = atoi(operandos[2]);
+        int offset = atoi(operandos[1]);
+
+        obterNomeRegistrador(rt, nome_rt);
+        obterNomeRegistrador(base, nome_rs); // Usando nome_rs para o base
+
         // Simulação simplificada: vamos supor que a memória é um array de inteiros
-        int memoria[1024] = {0};
+        static int memoria[1024] = {0};
         memoria[registradores[base] + offset] = registradores[rt];
+        printf("MEM[%d] = [%s]\n", registradores[base] + offset, nome_rt);
     } else if (opcode == 4) { // beq
         unsigned int rs = obterNumeroRegistrador(operandos[0]);
         unsigned int rt = obterNumeroRegistrador(operandos[1]);
         int offset = atoi(operandos[2]);
+
+        obterNomeRegistrador(rs, nome_rs);
+        obterNomeRegistrador(rt, nome_rt);
+
         if (registradores[rs] == registradores[rt]) {
+            printf("Branch if [%s] == [%s] (simulado)\n", nome_rs, nome_rt);
             // Simulação simplificada: não vamos alterar o PC
-            printf("Branch taken (simulado).\n");
         }
     } else if (opcode == 5) { // bne
         unsigned int rs = obterNumeroRegistrador(operandos[0]);
         unsigned int rt = obterNumeroRegistrador(operandos[1]);
         int offset = atoi(operandos[2]);
+
+        obterNomeRegistrador(rs, nome_rs);
+        obterNomeRegistrador(rt, nome_rt);
+
         if (registradores[rs] != registradores[rt]) {
+            printf("Branch if [%s] != [%s] (simulado)\n", nome_rs, nome_rt);
             // Simulação simplificada: não vamos alterar o PC
-            printf("Branch taken (simulado).\n");
         }
     } else if (opcode == 8) { // addi
         unsigned int rs = obterNumeroRegistrador(operandos[1]);
         unsigned int rt = obterNumeroRegistrador(operandos[0]);
         int imediato = atoi(operandos[2]);
+
+        obterNomeRegistrador(rs, nome_rs);
+        obterNomeRegistrador(rt, nome_rt);
+
         registradores[rt] = registradores[rs] + imediato;
+        printf("[%s] = [%s] + %d\n", nome_rt, nome_rs, imediato);
     } else if (opcode == 2) { // j
         unsigned int endereco = atoi(operandos[0]);
+        printf("Jump to address %u (simulado)\n", endereco);
         // Simulação simplificada: não vamos alterar o PC
-        printf("Jump to address %u (simulado).\n", endereco);
     } else {
         printf("Instrucao nao suportada.\n");
     }
@@ -250,5 +288,22 @@ unsigned int obterFunct(char *mnemonic) {
         return 42;
     } else {
         return 0;
+    }
+}
+
+// Função para obter o nome do registrador a partir do número
+void obterNomeRegistrador(int numero, char *nome) {
+    if (numero == 0) {
+        strcpy(nome, "$zero");
+    } else if (numero >= 8 && numero <= 15) {
+        sprintf(nome, "$t%d", numero - 8);
+    } else if (numero >= 16 && numero <= 23) {
+        sprintf(nome, "$s%d", numero - 16);
+    } else if (numero >= 4 && numero <= 7) {
+        sprintf(nome, "$a%d", numero - 4);
+    } else if (numero >= 1 && numero <= 3) {
+        sprintf(nome, "$v%d", numero - 2);
+    } else {
+        sprintf(nome, "$%d", numero);
     }
 }
