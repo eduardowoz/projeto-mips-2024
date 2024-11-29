@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 
-#define NUM_REGISTERS 32
+#define NUM_REGISTRADORES 32
 
 // Definição das estruturas para os tipos de instrução
 typedef struct {
@@ -13,61 +13,61 @@ typedef struct {
     unsigned int rd;
     unsigned int shamt;
     unsigned int funct;
-} RTypeInstruction;
+} InstrucaoTipoR;
 
 typedef struct {
     unsigned int opcode;
     unsigned int rs;
     unsigned int rt;
-    int immediate;
-} ITypeInstruction;
+    int imediato;
+} InstrucaoTipoI;
 
 typedef struct {
     unsigned int opcode;
-    unsigned int address;
-} JTypeInstruction;
+    unsigned int endereco;
+} InstrucaoTipoJ;
 
 // Protótipos das funções
-void parseInstruction(char *instructionStr, char *mnemonic, char operands[][10]);
-void displayInstruction(char *mnemonic, char operands[][10]);
-void executeInstruction(char *mnemonic, char operands[][10], int *registers);
-void displayRegisters(int *registers);
-int getRegisterNumber(char *reg);
-unsigned int getOpcode(char *mnemonic);
-unsigned int getFunct(char *mnemonic);
+void analisarInstrucao(char *instrucaoStr, char *mnemonic, char operandos[][10]);
+void exibirInstrucao(char *mnemonic, char operandos[][10]);
+void executarInstrucao(char *mnemonic, char operandos[][10], int *registradores);
+void exibirRegistradores(int *registradores);
+int obterNumeroRegistrador(char *reg);
+unsigned int obterOpcode(char *mnemonic);
+unsigned int obterFunct(char *mnemonic);
 
 int main() {
-    char instructionStr[50];
+    char instrucaoStr[50];
     char mnemonic[10];
-    char operands[3][10];
-    int registers[NUM_REGISTERS] = {0};
+    char operandos[3][10];
+    int registradores[NUM_REGISTRADORES] = {0};
 
     while (1) {
         printf("\nDigite uma instrucao MIPS ou 'sair' para encerrar: ");
-        fgets(instructionStr, sizeof(instructionStr), stdin);
-        instructionStr[strcspn(instructionStr, "\n")] = '\0'; // Remover nova linha
+        fgets(instrucaoStr, sizeof(instrucaoStr), stdin);
+        instrucaoStr[strcspn(instrucaoStr, "\n")] = '\0'; // Remover nova linha
 
         // Opção de saída
-        if (strcmp(instructionStr, "sair") == 0) {
+        if (strcmp(instrucaoStr, "sair") == 0) {
             printf("\nprograma encerrado\n");
             break;
         }
 
-        parseInstruction(instructionStr, mnemonic, operands);
-        displayInstruction(mnemonic, operands);
-        executeInstruction(mnemonic, operands, registers);
-        displayRegisters(registers);
+        analisarInstrucao(instrucaoStr, mnemonic, operandos);
+        exibirInstrucao(mnemonic, operandos);
+        executarInstrucao(mnemonic, operandos, registradores);
+        exibirRegistradores(registradores);
     }
 
     return 0;
 }
 
 // Função para analisar a instrução e extrair o mnemônico e operandos
-void parseInstruction(char *instructionStr, char *mnemonic, char operands[][10]) {
+void analisarInstrucao(char *instrucaoStr, char *mnemonic, char operandos[][10]) {
     char *token;
     int i = 0;
 
-    token = strtok(instructionStr, " ,");
+    token = strtok(instrucaoStr, " ,");
     if (token != NULL) {
         strcpy(mnemonic, token);
     } else {
@@ -75,29 +75,29 @@ void parseInstruction(char *instructionStr, char *mnemonic, char operands[][10])
     }
 
     while ((token = strtok(NULL, " ,")) != NULL && i < 3) {
-        strcpy(operands[i], token);
+        strcpy(operandos[i], token);
         i++;
     }
 
     // Preencher operandos restantes com strings vazias
     for (; i < 3; i++) {
-        operands[i][0] = '\0';
+        operandos[i][0] = '\0';
     }
 }
 
 // Função para exibir o formato estrutural da instrução
-void displayInstruction(char *mnemonic, char operands[][10]) {
-    unsigned int opcode = getOpcode(mnemonic);
+void exibirInstrucao(char *mnemonic, char operandos[][10]) {
+    unsigned int opcode = obterOpcode(mnemonic);
     printf("\nFormato Estrutural da Instrucao:\n");
-    printf("Mnemonic: %s\n", mnemonic);
+    printf("mnemonic: %s\n", mnemonic);
     printf("Opcode: %u\n", opcode);
 
     if (opcode == 0) { // Tipo R
-        unsigned int rs = getRegisterNumber(operands[1]);
-        unsigned int rt = getRegisterNumber(operands[2]);
-        unsigned int rd = getRegisterNumber(operands[0]);
+        unsigned int rs = obterNumeroRegistrador(operandos[1]);
+        unsigned int rt = obterNumeroRegistrador(operandos[2]);
+        unsigned int rd = obterNumeroRegistrador(operandos[0]);
         unsigned int shamt = 0;
-        unsigned int funct = getFunct(mnemonic);
+        unsigned int funct = obterFunct(mnemonic);
 
         printf("rs: %u\n", rs);
         printf("rt: %u\n", rt);
@@ -105,98 +105,98 @@ void displayInstruction(char *mnemonic, char operands[][10]) {
         printf("shamt: %u\n", shamt);
         printf("funct: %u\n", funct);
     } else if (opcode == 2 || opcode == 3) { // Tipo J
-        unsigned int address = atoi(operands[0]);
-        printf("Endereço: %u\n", address);
+        unsigned int endereco = atoi(operandos[0]);
+        printf("Endereco: %u\n", endereco);
     } else if (opcode != 63) { // Tipo I
-        unsigned int rs = getRegisterNumber(operands[1]);
-        unsigned int rt = getRegisterNumber(operands[0]);
-        int immediate = atoi(operands[2]);
+        unsigned int rs = obterNumeroRegistrador(operandos[1]);
+        unsigned int rt = obterNumeroRegistrador(operandos[0]);
+        int imediato = atoi(operandos[2]);
 
         printf("rs: %u\n", rs);
         printf("rt: %u\n", rt);
-        printf("Immediate: %d\n", immediate);
+        printf("Imediato: %d\n", imediato);
     } else {
         printf("Instrucao nao suportada.\n");
     }
 }
 
 // Função para executar a instrução
-void executeInstruction(char *mnemonic, char operands[][10], int *registers) {
-    unsigned int opcode = getOpcode(mnemonic);
+void executarInstrucao(char *mnemonic, char operandos[][10], int *registradores) {
+    unsigned int opcode = obterOpcode(mnemonic);
 
     if (opcode == 0) { // Tipo R
-        unsigned int rs = getRegisterNumber(operands[1]);
-        unsigned int rt = getRegisterNumber(operands[2]);
-        unsigned int rd = getRegisterNumber(operands[0]);
-        unsigned int funct = getFunct(mnemonic);
+        unsigned int rs = obterNumeroRegistrador(operandos[1]);
+        unsigned int rt = obterNumeroRegistrador(operandos[2]);
+        unsigned int rd = obterNumeroRegistrador(operandos[0]);
+        unsigned int funct = obterFunct(mnemonic);
 
         if (funct == 32) { // add
-            registers[rd] = registers[rs] + registers[rt];
+            registradores[rd] = registradores[rs] + registradores[rt];
         } else if (funct == 34) { // sub
-            registers[rd] = registers[rs] - registers[rt];
+            registradores[rd] = registradores[rs] - registradores[rt];
         } else if (funct == 36) { // and
-            registers[rd] = registers[rs] & registers[rt];
+            registradores[rd] = registradores[rs] & registradores[rt];
         } else if (funct == 37) { // or
-            registers[rd] = registers[rs] | registers[rt];
+            registradores[rd] = registradores[rs] | registradores[rt];
         } else if (funct == 42) { // slt
-            registers[rd] = (registers[rs] < registers[rt]) ? 1 : 0;
+            registradores[rd] = (registradores[rs] < registradores[rt]) ? 1 : 0;
         } else {
             printf("Instrucao nao suportada.\n");
         }
     } else if (opcode == 35) { // lw
-        unsigned int base = getRegisterNumber(operands[1]);
-        unsigned int rt = getRegisterNumber(operands[0]);
-        int offset = atoi(operands[2]);
+        unsigned int base = obterNumeroRegistrador(operandos[1]);
+        unsigned int rt = obterNumeroRegistrador(operandos[0]);
+        int offset = atoi(operandos[2]);
         // Simulação simplificada: vamos supor que a memória é um array de inteiros
-        int memory[1024] = {0};
-        registers[rt] = memory[registers[base] + offset];
+        int memoria[1024] = {0};
+        registradores[rt] = memoria[registradores[base] + offset];
     } else if (opcode == 43) { // sw
-        unsigned int base = getRegisterNumber(operands[1]);
-        unsigned int rt = getRegisterNumber(operands[0]);
-        int offset = atoi(operands[2]);
+        unsigned int base = obterNumeroRegistrador(operandos[1]);
+        unsigned int rt = obterNumeroRegistrador(operandos[0]);
+        int offset = atoi(operandos[2]);
         // Simulação simplificada: vamos supor que a memória é um array de inteiros
-        int memory[1024] = {0};
-        memory[registers[base] + offset] = registers[rt];
+        int memoria[1024] = {0};
+        memoria[registradores[base] + offset] = registradores[rt];
     } else if (opcode == 4) { // beq
-        unsigned int rs = getRegisterNumber(operands[0]);
-        unsigned int rt = getRegisterNumber(operands[1]);
-        int offset = atoi(operands[2]);
-        if (registers[rs] == registers[rt]) {
+        unsigned int rs = obterNumeroRegistrador(operandos[0]);
+        unsigned int rt = obterNumeroRegistrador(operandos[1]);
+        int offset = atoi(operandos[2]);
+        if (registradores[rs] == registradores[rt]) {
             // Simulação simplificada: não vamos alterar o PC
             printf("Branch taken (simulado).\n");
         }
     } else if (opcode == 5) { // bne
-        unsigned int rs = getRegisterNumber(operands[0]);
-        unsigned int rt = getRegisterNumber(operands[1]);
-        int offset = atoi(operands[2]);
-        if (registers[rs] != registers[rt]) {
+        unsigned int rs = obterNumeroRegistrador(operandos[0]);
+        unsigned int rt = obterNumeroRegistrador(operandos[1]);
+        int offset = atoi(operandos[2]);
+        if (registradores[rs] != registradores[rt]) {
             // Simulação simplificada: não vamos alterar o PC
             printf("Branch taken (simulado).\n");
         }
     } else if (opcode == 8) { // addi
-        unsigned int rs = getRegisterNumber(operands[1]);
-        unsigned int rt = getRegisterNumber(operands[0]);
-        int immediate = atoi(operands[2]);
-        registers[rt] = registers[rs] + immediate;
+        unsigned int rs = obterNumeroRegistrador(operandos[1]);
+        unsigned int rt = obterNumeroRegistrador(operandos[0]);
+        int imediato = atoi(operandos[2]);
+        registradores[rt] = registradores[rs] + imediato;
     } else if (opcode == 2) { // j
-        unsigned int address = atoi(operands[0]);
+        unsigned int endereco = atoi(operandos[0]);
         // Simulação simplificada: não vamos alterar o PC
-        printf("Jump to address %u (simulado).\n", address);
+        printf("Jump to address %u (simulado).\n", endereco);
     } else {
         printf("Instrucao nao suportada.\n");
     }
 }
 
 // Função para exibir os valores dos registradores
-void displayRegisters(int *registers) {
+void exibirRegistradores(int *registradores) {
     printf("\nValores dos Registradores:\n");
-    for (int i = 0; i < NUM_REGISTERS; i++) {
-        printf("$%d = %d\n", i, registers[i]);
+    for (int i = 0; i < NUM_REGISTRADORES; i++) {
+        printf("$%d = %d\n", i, registradores[i]);
     }
 }
 
 // Função para obter o número do registrador a partir de sua representação em string
-int getRegisterNumber(char *reg) {
+int obterNumeroRegistrador(char *reg) {
     if (reg[0] == '$') {
         if (reg[1] == 'z') { // $zero
             return 0;
@@ -214,7 +214,7 @@ int getRegisterNumber(char *reg) {
 }
 
 // Função para obter o opcode a partir do mnemônico
-unsigned int getOpcode(char *mnemonic) {
+unsigned int obterOpcode(char *mnemonic) {
     if (strcmp(mnemonic, "add") == 0 || strcmp(mnemonic, "sub") == 0 ||
         strcmp(mnemonic, "and") == 0 || strcmp(mnemonic, "or") == 0 ||
         strcmp(mnemonic, "slt") == 0) {
@@ -237,7 +237,7 @@ unsigned int getOpcode(char *mnemonic) {
 }
 
 // Função para obter o funct a partir do mnemônico (para instruções tipo R)
-unsigned int getFunct(char *mnemonic) {
+unsigned int obterFunct(char *mnemonic) {
     if (strcmp(mnemonic, "add") == 0) {
         return 32;
     } else if (strcmp(mnemonic, "sub") == 0) {
