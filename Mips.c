@@ -1,3 +1,7 @@
+// Alunos: 
+// Eduardo Cornehl Wozniak
+// Carolina Dobjanski
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
