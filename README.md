@@ -48,5 +48,8 @@ Observações
 - Memória: A memória é representada por um array estático, e os valores são mantidos entre as instruções graças ao uso de static.
 - Registradores: Os registradores são armazenados em um array de 32 posições, representando os registradores do MIPS.
 
+Video da explicação do código:
+- https://drive.google.com/drive/folders/1r-jkYNZ44LI3cx1CLdjZ6zEQyVk8XHmM?usp=sharing
+
 Roteiro montado para a explicação de detalhação do código:
 - https://malachite-earl-ea9.notion.site/Roteiro-MIPS-14d7d98561e7808eb7f1cc67e8f513d0?pvs=4
