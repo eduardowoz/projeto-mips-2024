@@ -1,4 +1,7 @@
-###Simulador de Instruções MIPS em C###
+---Simulador de Instruções MIPS em C---
+Alunos:
+- Eduardo Cornehl Wozniak
+- Carolina Dobjanski
 
 - Este repositório contém um simulador simples de instruções MIPS escrito em C. O programa permite ao usuário inserir instruções em Assembly MIPS, exibe o formato estrutural da instrução, executa as operações definidas e apresenta os valores atualizados dos registradores após a execução.
 
