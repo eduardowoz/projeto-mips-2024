@@ -1,4 +1,5 @@
 ---Simulador de Instruções MIPS em C---
+
 Alunos:
 - Eduardo Cornehl Wozniak
 - Carolina Dobjanski
